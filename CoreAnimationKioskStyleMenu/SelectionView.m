@@ -61,28 +61,44 @@
 
 - (void)awakeFromNib
 {
+    
+    [NSApp setPresentationOptions:(NSApplicationPresentationAutoHideDock|NSApplicationPresentationAutoHideMenuBar)];
+    
 	// create an array that contains the various 
 	// strings
-    self.names=[NSArray arrayWithObjects:@"Movies",@"Music",
-				@"Podcasts",@"Photos",@"Internet",
+    self.names=[NSArray arrayWithObjects:@"",
 				nil];
 	
 	// The cursor isn't used for selection, so we hide it
-	[NSCursor hide];
-	
+	//[NSCursor hide];
+	NSLog(@"init: %@", [self.window title] );
 	
 	// setup the individual layers
     [self setupLayers];
 	
-    // go full screen, as a kiosk application
-	[self enterFullScreenMode:[self.window screen] withOptions:NULL];
-	
-	// Make the window the first responder to get keystrokes
+	//[self.window setStyleMask:NSBorderlessWindowMask];
+    [self.window setExcludedFromWindowsMenu:YES];
+    
+    [[self window] setFrame:CGRectMake(0.0,-800.0+0.0,1920,2000.0) display:YES animate:YES];
+  	
+	[[self window] setLevel:NSFloatingWindowLevel];
+    
+    // Make the window the first responder to get keystrokes
 	[self.window makeFirstResponder:self];
-	
 	// bring the window to the front
 	[self.window makeKeyAndOrderFront:self];
-	
+
+    // go full screen, as a kiosk application
+	//[self enterFullScreenMode:[self.window screen] withOptions:NULL];
+	//self.frame = CGRectMake(-200.0,-100.0,2600.0,2400.0);
+}
+
+- (BOOL)canBecomeMainWindow {
+    return YES;
+}
+
+- (BOOL)canBecomeKeyWindow {
+    return YES;
 }
 
 #pragma mark Listing: Configuration of the Background rootLayer
@@ -95,14 +111,15 @@
 	CALayer *rootLayer=[CALayer layer];
 	CGColorRef myBlackColor=CGColorCreateGenericRGB(0.0f, 0.0f, 0.0f, 1.0f);
 	rootLayer.backgroundColor=myBlackColor;
-	NSImage *theImage=[[NSImage alloc] initWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"CommandImage" ofType:@"png"]];
+	/*NSImage *theImage=[[NSImage alloc] initWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"CommandImage" ofType:@"png"]];
     
    // theImage =
     self.menuLayer.contents = theImage; 
 	
 	rootLayer.contentsGravity=kCAGravityTop;
 	[theImage release];
-	CGColorRelease(myBlackColor);
+	*/
+    CGColorRelease(myBlackColor);
     //rootLayer.frame.origin.x = 10.0;
     
 	// Set the redLayer as the root layer
@@ -113,13 +130,12 @@
 
 	
 	
-	
 #pragma mark - Listing:Setup menuLayers Array. The Selectable Menu Items.
 
 	// Create a layer to contain the menus	
 	self.menuLayer=[CALayer layer] ;
 	self.menuLayer.frame=rootLayer.frame;
-    self.menuLayer.frame=CGRectMake(0.0,0.0,1600.0,1400.0);
+    self.menuLayer.frame=CGRectMake(0.0,0.0,1920.0,2000.0);
 
 	self.menuLayer.layoutManager=[CAConstraintLayoutManager layoutManager];
    [rootLayer addSublayer:self.menuLayer];
@@ -132,7 +148,8 @@
     CGFloat height=200.0f;
     CGFloat spacing=200.0f;
     CGFloat fontSize=32.0f;
-    CGFloat initialOffset=(self.bounds.size.height/2-(height*5+spacing*4)/2.0f)+1200;
+    //CGFloat initialOffset=(self.bounds.size.height/2-(height*5+spacing*4)/2.0f)+(+800+1200)/2;
+	CGFloat initialOffset=800.0f-0.0f;
 	
 	
 	
@@ -170,8 +187,12 @@
 	self.selectionLayer=[CALayer layer];
     
     self.selectionLayer.contents=(id) CGWindowListCreateImage(CGRectInfinite, kCGWindowListOptionAll, kCGNullWindowID, kCGWindowImageDefault);
-    
  
+    //if (  [[self.window title]isEqualToString: @"CoreAnimationKioskMenu"] ) {
+    //    self.selectionLayer.contents=(id)   CGDisplayCreateImage(kCGDirectMainDisplay);
+    //} else {
+     //   self.selectionLayer.contents=(id) CGWindowListCreateImage(CGRectMake(0, 1200, 1280, 800), kCGWindowListOptionAll, kCGNullWindowID, kCGWindowImageDefault);
+    //}
     
     /*
 	CIFilter *filter = [CIFilter filterWithName:@"CIBloom"];
@@ -195,12 +216,8 @@
                                      kCAMediaTimingFunctionEaseInEaseOut];
 	[selectionLayer addAnimation:pulseAnimation forKey:@"pulseAnimation"];
 	*/
-    CGSize size      = CGSizeMake(1600.0,1200.0);
-    CALayer* layer = self.selectionLayer;
-    CGRect oldBounds = CGRectMake(0,0,1600.0,1200.0);
-    CGRect newBounds = CGRectMake(0,0,1600.0,1200.0);
     
-    [self resizeLayer:layer to:size old:oldBounds new:newBounds];
+  
     
     
 	// set the first item as selected
@@ -213,12 +230,35 @@
 	// cleanup
 	CGColorRelease(myWhiteColor);
 	// end of setupLayers
+    
+    
+    if ( YES ) { /* autostart animation, if keys are not working because of borderless window style*/
+        CGSize size      = CGSizeMake(1920.0,2000.0);
+        CALayer* layer = self.selectionLayer;
+        CGRect oldBounds = CGRectMake(0,-200,1920.0,2000.0);
+        CGRect newBounds = CGRectMake(0,-200,1920.0,2000.0);
+        
+        [self resizeLayer:layer to:size old:oldBounds new:newBounds];
+        
+    } else {
+        CGSize size      = CGSizeMake(192.0,200.0);
+        CALayer* layer = self.selectionLayer;
+        CGRect oldBounds = CGRectMake(0,-1000,1920.0,2000.0);
+        CGRect newBounds = CGRectMake(0,-1000,192.0,200.0);
+        
+        [self resizeLayer:layer to:size old:oldBounds new:newBounds];
+        
+    }
+    // animation finished..
+    //[[self window] setFrame:CGRectMake(0.0,-800.0+0.0,20,20.0) display:YES animate:YES];
+  	//self.selectionLayer.contents = nil;
+    
 }
 
 -(void)resizeLayer:(CALayer*)layer to:(CGSize)size old:(CGRect)oldBounds new:(CGRect)newBounds
 {
     //CGRect oldBounds = CGRectMake(0,0, 1920.0+1280.0,1280.0+800.0);
-    //CGRect newBounds = CGRectMake(0,0, 160.0,120.0);
+    //CGRect newBounds = CGRectMake(0,0, 192.0,200.0);
     
     /*self.selectionLayer.bounds=CGRectMake(0.0,0.0,800.0,600.0);
      self.selectionLayer.borderWidth=2.0;
@@ -237,11 +277,11 @@
     
     // Mac OS X
     //animation.repeatCount = HUGE_VALF;
-	animation.duration = 1.0;
+	//animation.autoreverses = YES;
+	animation.duration = 1;
     animation.fromValue = [NSValue valueWithRect:NSRectFromCGRect(oldBounds)];
     animation.toValue = [NSValue valueWithRect:NSRectFromCGRect(newBounds)];
-    //animation.autoreverses = YES;
-	// iOS
+    // iOS
     //animation.fromValue = [NSValue valueWithCGRect:oldBounds];
     //animation.toValue = [NSValue valueWithCGRect:newBounds];
     
@@ -250,6 +290,10 @@
     
     // Add the animation, overriding the implicit animation.
     [layer addAnimation:animation forKey:@"bounds"];
+    
+   // [self.window close];
+    
+   
 }
 
 
@@ -280,24 +324,30 @@
 
 -(void)moveUp:(id)sender
 {
-    CGSize size      = CGSizeMake(1600.0,1200.0);
+    CGSize size      = CGSizeMake(1920.0,2000.0);
     CALayer* layer = self.selectionLayer;
-    CGRect oldBounds = CGRectMake(0,0,160.0,120.0);
-    CGRect newBounds = CGRectMake(0,0,1600.0,1200.0);
+    CGRect oldBounds = CGRectMake(0,0,192.0,200.0);
+    CGRect newBounds = CGRectMake(0,0,1920.0,2000.0);
     
     [self resizeLayer:layer to:size old:oldBounds new:newBounds];
     
+    //NSArray* wl = [NSApp windows];
+    //[wl[0] resizeLayer:layer to:size old:oldBounds new:newBounds];
+    //[wl[1] resizeLayer:layer to:size old:oldBounds new:newBounds];
     
     //[self changeSelectedIndex:self.selectedIndex-1];
 }
 
 -(void)moveDown:(id)sender
 {
-    CGSize size      = CGSizeMake(160.0,120.0);
+    CGSize size      = CGSizeMake(192.0,200.0);
     CALayer* layer = self.selectionLayer;
-    CGRect oldBounds = CGRectMake(0,0,1600.0,1200.0);
-    CGRect newBounds = CGRectMake(0,0,160.0,120.0);
+    CGRect oldBounds = CGRectMake(0,0,1920.0,2000.0);
+    CGRect newBounds = CGRectMake(0,0,192.0,200.0);
     
+    //NSArray* wl = [NSApp windows];
+    //[[NSApplication windowWithWindowNumber:wl[0]] resizeLayer:layer to:size old:oldBounds new:newBounds];
+    //[[NSApplication windowWithWindowNumber:wl[1]] resizeLayer:layer to:size old:oldBounds new:newBounds];
     [self resizeLayer:layer to:size old:oldBounds new:newBounds];
     
    // [self changeSelectedIndex:self.selectedIndex+1];

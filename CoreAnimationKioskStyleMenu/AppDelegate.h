@@ -49,8 +49,12 @@
 
 @interface AppDelegate : NSObject {
     NSWindow *window;
+//    NSWindow *window2;
+    
 }
 
 @property (assign) IBOutlet NSWindow *window;
+
+//@property (assign) IBOutlet NSWindow *window2;
 
 @end

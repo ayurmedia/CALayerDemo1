@@ -50,9 +50,14 @@
 @implementation AppDelegate
 
 @synthesize window;
+//@synthesize window2;
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
 	// Insert code here to initialize your application 
+}
+- (void)keyDown:(NSEvent *)event{
+        NSLog(@"%d", [event keyCode]);
+    
 }
 
 @end
