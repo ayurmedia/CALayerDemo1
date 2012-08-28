@@ -22,7 +22,7 @@
  be used to endorse or promote products derived from the Apple Software 
  without specific prior written permission from Apple.  Except as 
  expressly stated in this notice, no other rights or licenses, express or 
- implied, are granted by Apple herein, including but not limited to any 
+ implied, are granted by Apple herein, including but not limited to any
  patent rights that may be infringed by your derivative works or by other 
  works in which the Apple Software may be incorporated. 
   
@@ -61,8 +61,21 @@
 
 - (void)awakeFromNib
 {
+   // Adopt to your setting, or calc automatically
+    if ( [[NSScreen screens] count] > 1 ) { /* setup dualscreen */
+        self.screenSize  = CGSizeMake(1920.0,2000.0);
+        self.bigBounds   = CGRectMake(0,0,1920.0,2000.0);
+        self.smallBounds   = CGRectMake(0,0,192.0,200.0);
+    } else { /* setup single */
+        self.screenSize  = CGSizeMake(1280.0,800.0);
+        self.bigBounds   = CGRectMake(0,0,1280.0,800.0);
+        self.smallBounds   = CGRectMake(0,0,128.0,80.0);
+        
+    }
     
+    [NSApp setActivationPolicy:NSApplicationActivationPolicyRegular];
     [NSApp setPresentationOptions:(NSApplicationPresentationAutoHideDock|NSApplicationPresentationAutoHideMenuBar)];
+    
     
 	// create an array that contains the various 
 	// strings
@@ -79,7 +92,8 @@
 	//[self.window setStyleMask:NSBorderlessWindowMask];
     [self.window setExcludedFromWindowsMenu:YES];
     
-    [[self window] setFrame:CGRectMake(0.0,-800.0+0.0,1920,2000.0) display:YES animate:YES];
+    // coorect for dualscreen arrangement
+    [[self window] setFrame:CGRectMake(0.0,-800.0+0.0,self.screenSize.width,self.screenSize.height) display:YES animate:YES];
   	
 	[[self window] setLevel:NSFloatingWindowLevel];
     
@@ -91,6 +105,9 @@
     // go full screen, as a kiosk application
 	//[self enterFullScreenMode:[self.window screen] withOptions:NULL];
 	//self.frame = CGRectMake(-200.0,-100.0,2600.0,2400.0);
+    
+    [self resizeLayer:self.selectionLayer to:self.screenSize old:self.bigBounds new:self.smallBounds close:NO];
+
 }
 
 - (BOOL)canBecomeMainWindow {
@@ -131,7 +148,7 @@
 	
 	
 #pragma mark - Listing:Setup menuLayers Array. The Selectable Menu Items.
-
+/*
 	// Create a layer to contain the menus	
 	self.menuLayer=[CALayer layer] ;
 	self.menuLayer.frame=rootLayer.frame;
@@ -139,7 +156,7 @@
 
 	self.menuLayer.layoutManager=[CAConstraintLayoutManager layoutManager];
    [rootLayer addSublayer:self.menuLayer];
-	
+*/	
 	
 	
 	
@@ -149,14 +166,14 @@
     CGFloat spacing=200.0f;
     CGFloat fontSize=32.0f;
     //CGFloat initialOffset=(self.bounds.size.height/2-(height*5+spacing*4)/2.0f)+(+800+1200)/2;
-	CGFloat initialOffset=800.0f-0.0f;
+	CGFloat initialOffset=200.0f-0.0f;
 	
 	
 	
 	//Create whiteColor it's used to draw the text and also in the selectionLayer
 	CGColorRef myWhiteColor=CGColorCreateGenericRGB(1.0f,1.0f,1.0f,1.0f);
 	
-	
+	/*
 	// interate over the list of selection names and create layers for them.
 	// The menuItemLayer's are also positioned during this loop.
 	NSUInteger i;
@@ -179,7 +196,8 @@
 		[self.menuLayer addSublayer:menuItemLayer];
 	} // end of for loop
 	[self.menuLayer layoutIfNeeded];
-	
+	*/
+    
 #pragma mark - Listing: Setup selectionLayer. Displays the Currently Selected Item.
 	
 	// we use an additional layer, selectionLayer
@@ -223,7 +241,7 @@
 	// set the first item as selected
 	[self changeSelectedIndex:0];
 	
-    
+     self.selectionLayer.frame=CGRectMake(0.0,0.0,self.screenSize.width,self.screenSize.height);
 	// finally, the selection layer is added to the root layer
 	[rootLayer addSublayer:self.selectionLayer];
 	
@@ -232,22 +250,13 @@
 	// end of setupLayers
     
     
-    if ( YES ) { /* autostart animation, if keys are not working because of borderless window style*/
-        CGSize size      = CGSizeMake(1920.0,2000.0);
-        CALayer* layer = self.selectionLayer;
-        CGRect oldBounds = CGRectMake(0,-200,1920.0,2000.0);
-        CGRect newBounds = CGRectMake(0,-200,1920.0,2000.0);
-        
-        [self resizeLayer:layer to:size old:oldBounds new:newBounds];
-        
+    if ( NO ) { /* autostart animation, if keys are not working because of borderless window style*/
+        //CGSize size      = CGSizeMake(192.0,200.0);
+        [self resizeLayer:self.selectionLayer to:self.smallBounds.size old:self.bigBounds new:self.smallBounds close:NO];
+
     } else {
-        CGSize size      = CGSizeMake(192.0,200.0);
-        CALayer* layer = self.selectionLayer;
-        CGRect oldBounds = CGRectMake(0,-1000,1920.0,2000.0);
-        CGRect newBounds = CGRectMake(0,-1000,192.0,200.0);
-        
-        [self resizeLayer:layer to:size old:oldBounds new:newBounds];
-        
+        [self resizeLayer:self.selectionLayer to:self.bigBounds.size old:self.bigBounds new:self.bigBounds close:NO];
+    
     }
     // animation finished..
     //[[self window] setFrame:CGRectMake(0.0,-800.0+0.0,20,20.0) display:YES animate:YES];
@@ -255,10 +264,10 @@
     
 }
 
--(void)resizeLayer:(CALayer*)layer to:(CGSize)size old:(CGRect)oldBounds new:(CGRect)newBounds
+-(void)resizeLayer:(CALayer*)layer to:(CGSize)size old:(CGRect)bigBounds new:(CGRect)smallBounds close:(Boolean)close
 {
-    //CGRect oldBounds = CGRectMake(0,0, 1920.0+1280.0,1280.0+800.0);
-    //CGRect newBounds = CGRectMake(0,0, 192.0,200.0);
+    //CGRect bigBounds = CGRectMake(0,0, 1920.0+1280.0,1280.0+800.0);
+    //CGRect smallBounds = CGRectMake(0,0, 192.0,200.0);
     
     /*self.selectionLayer.bounds=CGRectMake(0.0,0.0,800.0,600.0);
      self.selectionLayer.borderWidth=2.0;
@@ -268,7 +277,7 @@
     
     
     // Prepare the animation from the old size to the new size
-    newBounds.size = size;
+   // smallBounds.size = size;
     CABasicAnimation *animation = [CABasicAnimation animationWithKeyPath:@"bounds"];
     
     // NSValue/+valueWithRect:(NSRect)rect is available on Mac OS X
@@ -279,24 +288,34 @@
     //animation.repeatCount = HUGE_VALF;
 	//animation.autoreverses = YES;
 	animation.duration = 1;
-    animation.fromValue = [NSValue valueWithRect:NSRectFromCGRect(oldBounds)];
-    animation.toValue = [NSValue valueWithRect:NSRectFromCGRect(newBounds)];
+    animation.duration = 0.5;
+    
+    animation.fromValue = [NSValue valueWithRect:NSRectFromCGRect(bigBounds)];
+    animation.toValue   = [NSValue valueWithRect:NSRectFromCGRect(smallBounds)];
     // iOS
-    //animation.fromValue = [NSValue valueWithCGRect:oldBounds];
-    //animation.toValue = [NSValue valueWithCGRect:newBounds];
+    //animation.fromValue = [NSValue valueWithCGRect:bigBounds];
+    //animation.toValue = [NSValue valueWithCGRect:smallBounds];
     
     // Update the layer's bounds so the layer doesn't snap back when the animation completes.
-    layer.bounds = newBounds;
+    layer.bounds = smallBounds;
     
     // Add the animation, overriding the implicit animation.
     [layer addAnimation:animation forKey:@"bounds"];
     
    // [self.window close];
     
+    
    
 }
 
-
+/*
+- (void)animationDidStop:(CAAnimation *)theAnimation finished:(BOOL)flag
+{
+    //if ( self.can_close ) {
+        [NSApp terminate:self];
+    //}
+}
+*/
 
 #pragma mark Listing: Handle Changes in the Selection
 
@@ -324,33 +343,14 @@
 
 -(void)moveUp:(id)sender
 {
-    CGSize size      = CGSizeMake(1920.0,2000.0);
-    CALayer* layer = self.selectionLayer;
-    CGRect oldBounds = CGRectMake(0,0,192.0,200.0);
-    CGRect newBounds = CGRectMake(0,0,1920.0,2000.0);
-    
-    [self resizeLayer:layer to:size old:oldBounds new:newBounds];
-    
-    //NSArray* wl = [NSApp windows];
-    //[wl[0] resizeLayer:layer to:size old:oldBounds new:newBounds];
-    //[wl[1] resizeLayer:layer to:size old:oldBounds new:newBounds];
-    
-    //[self changeSelectedIndex:self.selectedIndex-1];
+    [self resizeLayer:self.selectionLayer to:self.bigBounds.size old:self.smallBounds new:self.bigBounds close:NO];
+ 
 }
 
 -(void)moveDown:(id)sender
 {
-    CGSize size      = CGSizeMake(192.0,200.0);
-    CALayer* layer = self.selectionLayer;
-    CGRect oldBounds = CGRectMake(0,0,1920.0,2000.0);
-    CGRect newBounds = CGRectMake(0,0,192.0,200.0);
+    [self resizeLayer:self.selectionLayer to:self.smallBounds.size old:self.bigBounds new:self.smallBounds close:NO];
     
-    //NSArray* wl = [NSApp windows];
-    //[[NSApplication windowWithWindowNumber:wl[0]] resizeLayer:layer to:size old:oldBounds new:newBounds];
-    //[[NSApplication windowWithWindowNumber:wl[1]] resizeLayer:layer to:size old:oldBounds new:newBounds];
-    [self resizeLayer:layer to:size old:oldBounds new:newBounds];
-    
-   // [self changeSelectedIndex:self.selectedIndex+1];
 	
 }
 

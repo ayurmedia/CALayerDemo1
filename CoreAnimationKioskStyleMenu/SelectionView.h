@@ -57,14 +57,16 @@
 	NSInteger selectedIndex;
 	
     // the layer that contains the menu item layers
-    CALayer *menuLayer;
+    //CALayer *menuLayer;
 	
     // the layer that is used for the selection display
     CALayer *selectionLayer;
 	
     // the array of menu item names
     NSArray *names;
-	
+	CGRect bigBounds;
+    CGRect smallBounds;
+    CGSize screenSize;
 }
 
 -(void)awakeFromNib;
@@ -76,7 +78,11 @@
 
 
 @property  NSInteger selectedIndex;
+@property  CGRect bigBounds;
+@property  CGRect smallBounds;
+@property  CGSize screenSize;
 @property (retain) CALayer *menuLayer;
 @property (retain) CALayer *selectionLayer;
 @property (retain) NSArray *names;
+
 @end
